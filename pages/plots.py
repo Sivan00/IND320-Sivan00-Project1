@@ -59,8 +59,10 @@ if choice == "All columns":
     ax.set_title("National reservoir measurements")
     ax.set_ylim(-0.15, (len(MEASUREMENTS) - 1) * track_gap + 1.05)
     st.caption(
-        "Each line uses its own 0–1 historical range. The separate tracks keep "
-        "similar curves visible; the capacity line is flat because it is constant here."
+        "This view compares the five reservoir measurements. The other six columns "
+        "describe dates, weeks, and areas, so I leave them out of the shared lines. "
+        "I can still choose each of them above. Each line has its own 0–1 historical "
+        "range, and capacity is flat here because it does not change."
     )
 elif choice in MEASUREMENTS:
     label, unit, multiplier = MEASUREMENTS[choice]
