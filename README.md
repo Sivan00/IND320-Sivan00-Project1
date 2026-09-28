@@ -38,6 +38,4 @@ The fourth page is still a simple placeholder because this is only the first
 part of the project. The app currently reads data from the local CSV file.
 MongoDB belongs to project part 2 and is not used in this submission.
 
-## Screencast
 
-My project 1 screencast is available on the [screencast page](IND320_project_1_screencast.md), where the video can be played directly on GitHub.
