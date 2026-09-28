@@ -37,3 +37,7 @@ IND320 folder. The packages needed by the published app are listed in
 The fourth page is still a simple placeholder because this is only the first
 part of the project. The app currently reads data from the local CSV file.
 MongoDB belongs to project part 2 and is not used in this submission.
+
+## Screencast
+
+My project 1 screencast is available on the [GitHub release page](https://github.com/Sivan00/IND320-Sivan00-Project1/releases/tag/project-1).
