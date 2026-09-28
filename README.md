@@ -40,4 +40,4 @@ MongoDB belongs to project part 2 and is not used in this submission.
 
 ## Screencast
 
-My project 1 screencast is available on the [GitHub release page](https://github.com/Sivan00/IND320-Sivan00-Project1/releases/tag/project-1).
+My project 1 screencast is available on the [screencast page](IND320_project_1_screencast.md), where the video can be played directly on GitHub.
