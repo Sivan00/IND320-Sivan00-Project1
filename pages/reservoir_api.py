@@ -13,6 +13,7 @@ st.write(
 )
 
 try:
+    # I use both responses so the page can compare NVE's area list with the data.
     areas = load_reservoir_areas()
     measurements = load_reservoirs()
 except requests.RequestException:
@@ -26,6 +27,7 @@ area_type = st.radio(
     format_func=lambda code: f"{code}: {AREA_TYPES[code]}",
 )
 area_table = areas.loc[areas["area_type"] == area_type].copy()
+# This check shows whether every area defined by NVE also has measurements.
 available = set(
     measurements.loc[measurements["area_type"] == area_type, "area_number"]
 )
@@ -50,6 +52,7 @@ missing = area_table.loc[
     area_table["Measurements available"] == "No", "Code"
 ].tolist()
 if missing:
+    # I report the missing series instead of making it look like the value is zero.
     st.info(
         f"NVE lists {', '.join(missing)} in the area catalogue but does not return "
         "a measurement series for it."

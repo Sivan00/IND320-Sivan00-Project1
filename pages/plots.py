@@ -15,6 +15,7 @@ st.write(
 )
 
 try:
+    # I load the full response first because NVE does not accept dates in this request.
     complete_data = load_reservoirs()
 except requests.RequestException:
     st.error("The NVE data could not be loaded. Please try again shortly.")
@@ -27,6 +28,7 @@ area_type = st.radio(
     format_func=lambda code: f"{code}: {AREA_TYPES[code]}",
 )
 months = complete_data["date"].dt.to_period("M").astype(str).unique().tolist()
+# Two years gives a useful first view without making the opening plot too crowded.
 default_start = months[max(0, len(months) - 24)]
 start_month, end_month = st.select_slider(
     "Download interval",
@@ -43,6 +45,7 @@ if area_data.empty:
 
 fig, ax = plt.subplots(figsize=(10.5, 5.5))
 colors = ["#2F6F73", "#A45A52", "#947340", "#5D6699", "#77915F"]
+# Each area gets its own line, so EL, NO and VASS are never mixed together.
 for index, (area_number, rows) in enumerate(area_data.groupby("area_number")):
     rows = rows.sort_values("date")
     ax.plot(
@@ -57,6 +60,7 @@ ax.set_title(f"Reservoir fill: {AREA_TYPES[area_type]}", loc="left", fontweight=
 ax.set_xlabel("Date")
 ax.set_ylabel("Fill level (%)")
 ax.set_ylim(0, 105)
+# The light grid and open frame keep several area lines readable at once.
 ax.grid(axis="y", color="#E7E7E7", linewidth=0.7)
 ax.spines[["top", "right"]].set_visible(False)
 locator = mdates.AutoDateLocator(minticks=4, maxticks=8)
