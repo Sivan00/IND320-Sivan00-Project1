@@ -5,3 +5,5 @@ __pycache__/
 .env
 .streamlit/secrets.toml
 .cache/
+output/
+/IND320_project_1_Sivan_Hadji.pdf
