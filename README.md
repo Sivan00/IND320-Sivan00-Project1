@@ -2,10 +2,6 @@
 
 This repository contains my IND320 project work. I am keeping the different parts in the same repository because they build on each other during the semester.
 
-## Project part 1
-
-The first notebook and Streamlit pages use the reservoir data from NVE. In part 1, the data was stored as a local CSV file. The notebook shows how I renamed the columns, checked the data and made separate and combined plots. The Streamlit app includes the table and interactive plot from the first hand-in.
-
 ## Project part 2
 
 Part 2 continues from the first version of the app. The reservoir data is now requested directly from the NVE Magasinstatistikk API, so the app no longer depends on the CSV file. I have also added a page where the area type and time interval can be selected.
@@ -19,6 +15,10 @@ I use 2024 and 2025, the last two complete calendar years for this hand-in. ENTS
 On the transfer page, the left column uses a radio button for the connection and a separate year selector. The right column follows the updated instruction from 12 October: month pills decide which months are included in the two direction lines for the same connection and year.
 
 I am developing this part on the `project-part-2` branch while the work is being checked. The branch will be merged into `main` after the peer review and feedback stage.
+
+## Project part 1
+
+The first notebook and Streamlit pages use the reservoir data from NVE. In part 1, the data was stored as a local CSV file. The notebook shows how I renamed the columns, checked the data and made separate and combined plots. The Streamlit app includes the table and interactive plot from the first hand-in.
 
 ## Running the Streamlit app
 
