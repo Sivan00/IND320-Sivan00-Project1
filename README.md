@@ -61,7 +61,7 @@ In Finder, I can open the project folder and press Command + Shift + . to show t
 
 ## Links
 
-GitHub repository: https://github.com/Sivan00/IND320-Sivan00-Project1
+Project 2 branch: https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-2
 
 Streamlit app: https://ind320-sivan00-project1.streamlit.app/
 
