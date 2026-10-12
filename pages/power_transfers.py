@@ -18,12 +18,15 @@ st.write(
 
 try:
     transfers = load_power_transfers()
-except Exception:
+except Exception as error:
     # A connection error should not expose the private URI in the public app.
     st.error(
         "MongoDB could not be reached. Check the private connection settings "
         "and Atlas network access, then try again."
     )
+    # The error type is safe to show and helps me find the problem without
+    # printing the connection string or any login details.
+    st.caption(f"Connection check: {type(error).__name__}")
     st.stop()
 
 if transfers.empty:
