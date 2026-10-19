@@ -65,4 +65,6 @@ Project 2 branch: https://github.com/Sivan00/IND320-Sivan00-Project1/tree/projec
 
 Streamlit app: https://ind320-sivan00-project1.streamlit.app/
 
+Project 2 screencast: [Open the screencast page](IND320_project_2_screencast.md)
+
 Project 1 screencast: [Open the screencast page](IND320_project_1_screencast.md)
