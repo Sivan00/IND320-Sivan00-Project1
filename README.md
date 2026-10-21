@@ -14,7 +14,7 @@ I use 2024 and 2025, the last two complete calendar years for this hand-in. ENTS
 
 On the transfer page, the left column uses a radio button for the connection and a separate year selector. The right column follows the updated instruction from 12 October: month pills decide which months are included in the two direction lines for the same connection and year.
 
-I am developing this part on the `project-part-2` branch while the work is being checked. The branch will be merged into `main` after the peer review and feedback stage.
+I developed this part on the `project-part-2` branch while the earlier version was being checked. After the peer review and feedback stage, I merged the finished work into `main` so the repository keeps the full project in one place.
 
 ## Project part 1
 
@@ -61,7 +61,7 @@ In Finder, I can open the project folder and press Command + Shift + . to show t
 
 ## Links
 
-Project 2 branch: https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-2
+GitHub repository: https://github.com/Sivan00/IND320-Sivan00-Project1
 
 Streamlit app: https://ind320-sivan00-project1.streamlit.app/
 
