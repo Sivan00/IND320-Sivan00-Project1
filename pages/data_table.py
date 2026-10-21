@@ -1,58 +1,98 @@
-"""A row-per-column overview with first-month sparklines."""
+"""Show one reservoir sparkline for each area in the selected area system."""
 
 import pandas as pd
+import requests
 import streamlit as st
 
-from data_utils import load_reservoirs, national_series
+from data_utils import (
+    AREA_TYPES, area_label, load_reservoir_areas, load_reservoirs,
+)
 
 
-st.title("Data table")
-data = load_reservoirs()
-national = national_series(data)
+st.title("Reservoir table")
+st.write(
+    "The table compares the areas returned by NVE. I can change the area system "
+    "and the data interval without mixing electricity zones and watercourse regions."
+)
 
-# January 1995 is the first calendar month in the sorted national series.
-# I use its weekly rows for every sparkline so the mini charts are comparable.
-first_month = national["date"].dt.to_period("M").min()
-month_rows = national.loc[national["date"].dt.to_period("M") == first_month]
+try:
+    complete_data = load_reservoirs()
+    area_catalogue = load_reservoir_areas()
+except requests.RequestException:
+    st.error("The NVE data could not be loaded. Please try again shortly.")
+    st.stop()
 
-summary_rows = []
-for column in data.columns:
-    month_values = month_rows[column]
-    numeric = pd.api.types.is_numeric_dtype(month_values)
+area_type = st.radio(
+    "Area type",
+    ["EL", "NO", "VASS"],
+    horizontal=True,
+    format_func=lambda code: f"{code}: {AREA_TYPES[code]}",
+)
 
-    # LineChartColumn needs numbers. Date and text fields still get their own
-    # table rows, but an empty sparkline is more honest than invented numbers.
-    sparkline = month_values.astype(float).tolist() if numeric else []
-    # I take the example from the same national series as the mini chart,
-    # so an area label in this row does not disagree with the plotted values.
-    example = national[column].iloc[0]
-    if column == "date":
-        example = example.strftime("%Y-%m-%d")
+# The endpoint returns the full history, while this slider decides which part
+# of that download is kept for the table. Twelve months is a useful first view.
+months = complete_data["date"].dt.to_period("M").astype(str).unique().tolist()
+default_start = months[max(0, len(months) - 12)]
+start_month, end_month = st.select_slider(
+    "Download interval",
+    options=months,
+    value=(default_start, months[-1]),
+    help="The month range retained from NVE's downloaded response.",
+)
+selected = load_reservoirs(start_month, end_month)
+area_rows = selected.loc[selected["area_type"] == area_type].copy()
 
-    summary_rows.append(
+summary = []
+catalogue_rows = area_catalogue.loc[
+    area_catalogue["area_type"] == area_type
+].sort_values("area_number")
+for area in catalogue_rows.itertuples(index=False):
+    rows = area_rows.loc[
+        area_rows["area_number"] == area.area_number
+    ].sort_values("date")
+
+    # LineChartColumn needs a list for each row. An empty list shows that NVE
+    # has defined the area but did not return measurements for this interval.
+    fill_line = (rows["fill_fraction"] * 100).round(1).tolist()
+    summary.append(
         {
-            "Column": column,
-            "Data type": str(data[column].dtype),
-            "Example": str(example),
-            "First month": sparkline,
+            "Code": f"{area_type} {area.area_number}",
+            "Area": area.Area,
+            "Coverage": area.Coverage,
+            "Weeks": len(rows),
+            "Reservoir fill (%)": fill_line,
         }
     )
 
-st.write(
-    f"One row for each of the {len(data.columns)} imported columns. The small lines "
-    f"show the national weekly values in {first_month.strftime('%B %Y')}."
+st.caption(
+    f"Rows retained from {start_month} to {end_month}. Each small line shows the "
+    f"weekly fill level for one {area_type} area."
 )
 st.dataframe(
-    pd.DataFrame(summary_rows),
+    pd.DataFrame(summary),
     column_config={
-        "First month": st.column_config.LineChartColumn(
-            "First month", help="Weekly numeric values for the first month"
+        "Reservoir fill (%)": st.column_config.LineChartColumn(
+            "Reservoir fill (%)",
+            help="Weekly fill level in the selected download interval",
+            y_min=0,
+            y_max=100,
         )
     },
     hide_index=True,
     width="stretch",
 )
-st.caption("Text and date columns have no line because they are not numeric measurements.")
 
-st.subheader("A few imported rows, with English column names")
-st.dataframe(data.head(12), hide_index=True, width="stretch")
+missing = [row["Code"] for row in summary if not row["Reservoir fill (%)"]]
+if missing:
+    st.info(
+        f"NVE defines {', '.join(missing)}, but no measurements were returned "
+        "for the selected interval. I leave its mini chart empty instead of using zero."
+    )
+
+with st.expander("Rows used in the table"):
+    # Keeping the original weekly rows nearby makes the sparklines reproducible.
+    shown = area_rows.copy()
+    shown["area"] = shown.apply(
+        lambda row: area_label(row["area_type"], int(row["area_number"])), axis=1
+    )
+    st.dataframe(shown, hide_index=True, width="stretch")
