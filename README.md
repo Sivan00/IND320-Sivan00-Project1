@@ -1,6 +1,6 @@
 # IND320 Project
 
-Three project parts in one repository, with one Streamlit app throughout.
+Parts 1 and 2 are on `main`. Part 3 is on the `project-part-3` branch while it is reviewed. The same Streamlit app is used throughout.
 
 ## Start here
 
@@ -10,11 +10,9 @@ Three project parts in one repository, with one Streamlit app throughout.
 - [Part 3 PDF](pdfs/IND320_project_3_notebook.pdf)
 - [Streamlit app](https://ind320-sivan00-project1.streamlit.app/)
 
-Part 3 is on the `project-part-3` branch while it is reviewed. The same app URL is used for every part.
-
 ## Folders
 
-`notebooks/` has the Jupyter notebooks. `pdfs/` has the notebook PDFs. `recordings/` has the screencast links. `pages/` has the Streamlit screens. Shared app code stays in the root so its imports work.
+`notebooks/` has the Jupyter notebooks. `pdfs/` has notebook PDFs. `recordings/` has screencast links. `pages/` has the Streamlit screens. Shared app code stays in the root so its imports work.
 
 ## Run locally
 
@@ -23,8 +21,4 @@ Part 3 is on the `project-part-3` branch while it is reviewed. The same app URL 
 .venv/bin/python -m streamlit run streamlit_app.py
 ```
 
-For Part 2, use the local `.env`, MongoDB secrets and Cassandra container described in the notebook. They are not committed to GitHub. Part 3 uses NVE public area data and Open-Meteo historical weather data.
-
-## Links
-
-[GitHub repository](https://github.com/Sivan00/IND320-Sivan00-Project1) · [Streamlit app](https://ind320-sivan00-project1.streamlit.app/)
+Part 2 also needs Cassandra and private settings in `.env` or `.streamlit/secrets.toml`. Those files are ignored by Git. Part 3 uses public NVE area data and Open-Meteo historical weather data.
