@@ -3,23 +3,26 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import requests
 import streamlit as st
-import shapely
 from scipy.fft import dct, idct
 from scipy.signal import spectrogram
 from sklearn.neighbors import LocalOutlierFactor
 from statsmodels.tsa.seasonal import STL
 
 
+if TYPE_CHECKING:
+    import geopandas as gpd
+
+
 OPEN_METEO_ARCHIVE = "https://archive-api.open-meteo.com/v1/archive"
-NVE_REGIONS_FILE = Path(__file__).parent / "data" / "areas" / "nve_regions.zip"
-ELECTRICITY_AREAS_FILE = Path(__file__).parent / "data" / "areas" / "electricity_areas.zip"
+NVE_REGIONS_FILE = Path(__file__).resolve().parents[1] / "data" / "areas" / "nve_regions.zip"
+ELECTRICITY_AREAS_FILE = Path(__file__).resolve().parents[1] / "data" / "areas" / "electricity_areas.zip"
 
 def load_nve_regions(path: str | Path = NVE_REGIONS_FILE) -> gpd.GeoDataFrame:
     """Read the NVE region polygons bundled with this project."""
@@ -51,6 +54,7 @@ def sample_region_points(
 ) -> pd.DataFrame:
     """Draw reproducible, area-weighted random coordinates inside NVE regions."""
     import geopandas as gpd
+    import shapely
 
     if n < 1:
         raise ValueError("n must be at least 1")
@@ -95,7 +99,7 @@ def build_weather_sample(
     n_each: int = 1000,
     seed: int = 320,
 ) -> pd.DataFrame:
-    """Create the four weather-area samples, combining east and north as assigned."""
+    """Sample 1,000 points in each of the five source weather regions."""
     # I save each source region separately. The East and North combinations are
     # built from these rows later, which keeps the 1,000-point requirement clear.
     codes = ["RS", "RØ", "RV", "RM", "RN"]
@@ -173,17 +177,19 @@ def spc_precipitation_plot(
         norm="ortho",
     )
     satv = values - background
-    _, _, satv_low, satv_high = robust_limits(satv, n_sd)
+    satv_center, satv_spread, satv_low, satv_high = robust_limits(satv, n_sd)
     outlier = (satv < satv_low) | (satv > satv_high)
 
-    center, _, low, high = robust_limits(values, n_sd)
-    # Rainfall cannot be negative, even if the symmetric lower control limit is.
-    low = max(0.0, low)
+    # Translate the residual limits back to precipitation units at every hour.
+    # These are exactly the boundaries used for the flags, not raw-data limits.
+    center = background + satv_center
+    low = background + satv_low
+    high = background + satv_high
     fig, ax = plt.subplots(figsize=(10, 4.8))
     ax.plot(data["time"], values, color="#3D7476", linewidth=1.2, label="Mean precipitation")
-    ax.axhline(center, color="#555555", linewidth=1, label="Median")
-    ax.axhline(high, color="#B45B4E", linestyle="--", linewidth=1, label=f"Robust ±{n_sd:g} SD limits")
-    ax.axhline(low, color="#B45B4E", linestyle="--", linewidth=1)
+    ax.plot(data["time"], center, color="#555555", linewidth=1, label="DCT background + residual median")
+    ax.plot(data["time"], high, color="#B45B4E", linestyle="--", linewidth=1, label=f"SATV-based ±{n_sd:g} SD limits")
+    ax.plot(data["time"], low, color="#B45B4E", linestyle="--", linewidth=1)
     ax.scatter(data.loc[outlier, "time"], values[outlier], color="#D06A2E", s=22, zorder=3, label="DCT flags")
     ax.set(title="Precipitation: SPC outlier check", ylabel="Precipitation (mm/hour)", xlabel="Date")
     ax.grid(axis="y", color="#E7E7E7", linewidth=0.7)
@@ -194,9 +200,10 @@ def spc_precipitation_plot(
         "observations": int(len(data)),
         "outliers": int(outlier.sum()),
         "outlier_percent": float(outlier.mean() * 100),
-        "median_mm": center,
-        "lower_limit_mm": low,
-        "upper_limit_mm": high,
+        "residual_median_mm": satv_center,
+        "residual_robust_sd_mm": satv_spread,
+        "residual_lower_limit_mm": satv_low,
+        "residual_upper_limit_mm": satv_high,
         "dct_cutoff_fraction": cutoff,
         "robust_sd_multiplier": n_sd,
     }
@@ -296,7 +303,8 @@ def fill_spectrogram(
         noverlap=overlap_weeks, detrend="linear", scaling="spectrum",
     )
     fig, ax = plt.subplots(figsize=(10, 4.8))
-    mesh = ax.pcolormesh(times, frequency, 10 * np.log10(power + 1e-12), shading="auto", cmap="viridis")
+    # fs=52 expresses frequency per year, so segment times are years.
+    mesh = ax.pcolormesh(times * 52, frequency, 10 * np.log10(power + 1e-12), shading="auto", cmap="viridis")
     fig.colorbar(mesh, ax=ax, label="Power (dB)")
     ax.set(title="Spectrogram of weekly reservoir fill", xlabel="Weeks from start", ylabel="Frequency (cycles/year)")
     ax.spines[["top", "right"]].set_visible(False)
@@ -315,14 +323,20 @@ def load_open_meteo_region(
     area_code: str,
     start_date: str,
     end_date: str,
-    point_count: int = 25,
+    point_count: int = 1,
     sample_file: str = "data/areas/electricity_sample_points.csv",
 ) -> pd.DataFrame:
     """Download ERA5 hourly weather and average the stored sample points."""
-    samples = pd.read_csv(sample_file)
+    # Resolving the sample from the project folder also works inside notebooks/.
+    sample_path = Path(sample_file)
+    if not sample_path.is_absolute():
+        sample_path = Path(__file__).resolve().parents[1] / sample_path
+    samples = pd.read_csv(sample_path)
     selected = samples.loc[samples["area_group"] == area_code]
     if point_count < 1:
         raise ValueError("point_count must be at least 1")
+    if point_count > len(selected):
+        raise ValueError("point_count exceeds the number of saved locations for this area")
     # A fixed sample per area keeps the app responsive and makes reruns comparable.
     chosen = selected.head(point_count)
     if chosen.empty:
@@ -352,7 +366,7 @@ def load_open_meteo_region(
                 "precipitation_unit": "mm",
             }
             # Smaller requests keep the response size manageable for this endpoint.
-            response = requests.get(OPEN_METEO_ARCHIVE, params=params, timeout=120)
+            response = requests.get(OPEN_METEO_ARCHIVE, params=params, timeout=(10, 60))
             if response.status_code == 429:
                 try:
                     reason = response.json().get("reason", "Open-Meteo rate limit reached.")

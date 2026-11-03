@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from data_utils import load_reservoirs, national_series
+from utils.data_utils import load_reservoirs, national_series
 
 
 st.title("Norwegian energy data")

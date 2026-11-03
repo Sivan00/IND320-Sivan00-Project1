@@ -7,7 +7,7 @@ from calendar import month_name
 from calendar import isleap
 from zoneinfo import ZoneInfo
 
-from database_utils import load_power_transfers
+from utils.database_utils import load_power_transfers
 
 
 st.title("Cross-border power transfers")

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import requests
 import streamlit as st
 
-from quality_utils import (
+from utils.quality_utils import (
     lof_temperature_plot,
     load_open_meteo_region,
     spc_precipitation_plot,
@@ -20,7 +20,7 @@ st.write(
     "The app averages those points before looking for unusual values."
 )
 
-area_code = st.selectbox("Electricity area", ["NO1", "NO2", "NO3", "NO4", "NO5"])
+area_code = st.session_state["electricity_area"]
 # I use the bidding-zone polygons here because the weather sample should match the chosen area.
 st.caption(f"Weather sample locations are drawn from the NVE polygon for {area_code}.")
 left, right = st.columns(2)
@@ -58,7 +58,8 @@ with spc_tab:
     st.write(
         "The DCT high-pass residual (SATV) is only used to decide which hours to "
         "flag. The chart stays on the original precipitation scale, with robust "
-        "limits calculated from the full selected year."
+        "limits estimated from all residuals in the selected interval. "
+        "Select a full year for the annual analysis required in the assignment."
     )
     # These controls stay visible because each one changes how many hours are flagged.
     first, second = st.columns(2)

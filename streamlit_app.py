@@ -21,4 +21,11 @@ page = st.navigation(
     position="sidebar",
 )
 st.sidebar.caption("IND320 project 3 | Sivan")
+# A widget in the entry point keeps the same selection when pages change.
+# Both the NVE pattern analysis and ERA5 download use this electricity area.
+st.sidebar.selectbox(
+    "Electricity area", ["NO1", "NO2", "NO3", "NO4", "NO5"],
+    index=2, key="electricity_area",
+    help="Shared by Reservoir patterns and Weather outliers.",
+)
 page.run()

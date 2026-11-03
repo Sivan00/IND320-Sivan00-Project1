@@ -3,7 +3,7 @@
 import requests
 import streamlit as st
 
-from data_utils import AREA_TYPES, load_reservoir_areas, load_reservoirs
+from utils.data_utils import AREA_TYPES, load_reservoir_areas, load_reservoirs
 
 
 st.title("NVE area guide")

@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 import streamlit as st
 
-from data_utils import (
+from utils.data_utils import (
     AREA_TYPES, area_label, load_reservoir_areas, load_reservoirs,
 )
 

@@ -5,8 +5,8 @@ from datetime import date
 import matplotlib.pyplot as plt
 import streamlit as st
 
-from data_utils import load_reservoirs
-from quality_utils import fill_spectrogram, stl_decomposition
+from utils.data_utils import load_reservoirs
+from utils.quality_utils import fill_spectrogram, stl_decomposition
 
 
 st.title("Reservoir patterns")
@@ -16,7 +16,7 @@ st.write(
     "shows which repeating patterns are strongest."
 )
 
-area_code = st.selectbox("Electricity area", ["NO1", "NO2", "NO3", "NO4", "NO5"])
+area_code = st.session_state["electricity_area"]
 area_number = int(area_code[-1])
 # The NVE series stays weekly here; I do not merge it with hourly weather data.
 reservoirs = load_reservoirs()
