@@ -20,6 +20,7 @@ except requests.RequestException:
     st.error("The NVE area information could not be loaded. Please try again shortly.")
     st.stop()
 
+# The area number only makes sense together with its type, so I show one type at a time.
 area_type = st.radio(
     "Area type",
     ["EL", "NO", "VASS"],

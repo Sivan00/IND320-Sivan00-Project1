@@ -38,6 +38,7 @@ start_month, end_month = st.select_slider(
 )
 
 selected = load_reservoirs(start_month, end_month)
+# Filtering once here keeps every line on the same month interval.
 area_data = selected.loc[selected["area_type"] == area_type].copy()
 if area_data.empty:
     st.info("NVE returned no measurements for this choice.")

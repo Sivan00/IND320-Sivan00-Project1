@@ -43,6 +43,7 @@ selected = load_reservoirs(start_month, end_month)
 area_rows = selected.loc[selected["area_type"] == area_type].copy()
 
 summary = []
+# I start from NVE's area catalogue so areas without observations still appear in the table.
 catalogue_rows = area_catalogue.loc[
     area_catalogue["area_type"] == area_type
 ].sort_values("area_number")
@@ -54,6 +55,7 @@ for area in catalogue_rows.itertuples(index=False):
     # LineChartColumn needs a list for each row. An empty list shows that NVE
     # has defined the area but did not return measurements for this interval.
     fill_line = (rows["fill_fraction"] * 100).round(1).tolist()
+    # The small line is built from the same weekly rows shown in the expander below.
     summary.append(
         {
             "Code": f"{area_type} {area.area_number}",

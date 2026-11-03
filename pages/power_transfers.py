@@ -16,6 +16,7 @@ st.write(
     "ENTSO-E, stored in Cassandra and filtered with Spark in the notebook."
 )
 
+# This page uses the curated collection from the notebook, rather than calling ENTSO-E again.
 try:
     transfers = load_power_transfers()
 except Exception as error:
@@ -39,6 +40,7 @@ years = sorted(transfers["year"].unique(), reverse=True)
 
 with left:
     st.subheader("Yearly direction split")
+    # I keep the connection fixed for both charts so their values can be compared.
     connection = st.radio("Connection", connections, index=connections.index("NO2-DK1") if "NO2-DK1" in connections else 0)
     year = st.selectbox("Year", years)
     annual = transfers.loc[
@@ -78,6 +80,7 @@ with right:
         ].unique()
     )
     month_labels = {month_name[number]: number for number in month_numbers}
+    # Pills let me compare any combination of months without changing the left-hand year.
     chosen_month_names = st.pills(
         "Months",
         list(month_labels),
