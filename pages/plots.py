@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import requests
 import streamlit as st
 
-from data_utils import AREA_TYPES, area_label, load_reservoirs
+from utils.data_utils import AREA_TYPES, area_label, load_reservoirs
 
 
 st.title("Reservoir plots")

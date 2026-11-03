@@ -7,7 +7,7 @@ from calendar import month_name
 from calendar import isleap
 from zoneinfo import ZoneInfo
 
-from database_utils import load_power_transfers
+from utils.database_utils import load_power_transfers
 
 
 st.title("Cross-border power transfers")
@@ -80,7 +80,7 @@ with right:
         ].unique()
     )
     month_labels = {month_name[number]: number for number in month_numbers}
-    # Pills let me compare any combination of months without changing the selected year.
+    # Pills let me compare any combination of months without changing the left-hand year.
     chosen_month_names = st.pills(
         "Months",
         list(month_labels),
