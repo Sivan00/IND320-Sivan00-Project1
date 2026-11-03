@@ -16,6 +16,7 @@ st.write(
 data = load_reservoirs()
 national = national_series(data)
 
+# This summary gives a quick sense of the national series before I move to area-level pages.
 st.subheader("Data available from NVE")
 st.write(
     f"The API returned {len(data):,} rows and {len(data.columns)} columns. "
