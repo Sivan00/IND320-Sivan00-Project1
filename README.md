@@ -6,13 +6,13 @@ All three parts of my IND320 project are collected here. **`main` contains the l
 
 ## Project files
 
-The links below open the current files on `main`; there is no need to switch branches to find a project.
+Each project name opens its own page with only that part’s notebook, PDF and screencast. The files below are the current copies on `main`.
 
 | Project | Notebook | PDF | Screencast |
 | --- | --- | --- | --- |
-| **Project 1 – Reservoir data** | [Notebook](notebooks/IND320_assignment1.ipynb) | [PDF](pdfs/IND320_project_1_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_1_screencast.md) |
-| **Project 2 – APIs and databases** | [Notebook](notebooks/IND320_assignment2.ipynb) | [PDF](pdfs/IND320_project_2_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_2_screencast.md) |
-| **Project 3 – Data quality** | [Notebook](notebooks/IND320_assignment3.ipynb) | [PDF](pdfs/IND320_project_3_notebook.pdf) | Not recorded yet |
+| [**Project 1 – Reservoir data**](projects/project-1/README.md) | [Notebook](notebooks/IND320_assignment1.ipynb) | [PDF](pdfs/IND320_project_1_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_1_screencast.md) |
+| [**Project 2 – APIs and databases**](projects/project-2/README.md) | [Notebook](notebooks/IND320_assignment2.ipynb) | [PDF](pdfs/IND320_project_2_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_2_screencast.md) |
+| [**Project 3 – Data quality**](projects/project-3/README.md) | [Notebook](notebooks/IND320_assignment3.ipynb) | [PDF](pdfs/IND320_project_3_notebook.pdf) | Not recorded yet |
 
 ## Folders
 
@@ -34,7 +34,7 @@ The links below open the current files on `main`; there is no need to switch bra
 | Branch | Purpose |
 | --- | --- |
 | [`main`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/main) | Current combined version of Projects 1, 2 and 3. |
-| [`project-part-1`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-1) | Archive of the Project 1 version from 28 September 2026. |
+| [`project-part-1`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-1) | Project 1 code from 28 September 2026, with updated navigation and links. |
 | [`project-part-2`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-2) | Development history for Project 2, merged into `main`. |
 | [`project-part-3`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-3) | Development branch for Project 3; reviewed changes are merged into `main`. |
 
