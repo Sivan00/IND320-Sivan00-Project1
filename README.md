@@ -1,15 +1,47 @@
-# IND320 project
+# IND320 – Projects 1, 2 and 3
 
-My notebooks and app for IND320.
+All three parts of my IND320 project are collected here. **`main` contains the latest combined version** and runs the published app. The repository keeps its original Project 1 name so the course links stay the same.
 
 [Open the Streamlit app](https://ind320-sivan00-project1.streamlit.app/)
 
-| Part | Notebook | PDF | Screencast |
-| --- | --- | --- | --- |
-| 1 | [Notebook](notebooks/IND320_assignment1.ipynb) | [PDF](pdfs/IND320_project_1_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_1_screencast.md) |
-| 2 | [Notebook](notebooks/IND320_assignment2.ipynb) | [PDF](pdfs/IND320_project_2_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_2_screencast.md) |
-| 3 | [Notebook](notebooks/IND320_assignment3.ipynb) | [PDF](pdfs/IND320_project_3_notebook.pdf) | Not recorded yet |
+## Project files
 
-App pages are in [`pages/`](pages/), shared functions in [`utils/`](utils/), and area data in [`data/`](data/).
+The links below open the current files on `main`; there is no need to switch branches to find a project.
+
+| Project | Notebook | PDF | Screencast |
+| --- | --- | --- | --- |
+| **Project 1 – Reservoir data** | [Notebook](notebooks/IND320_assignment1.ipynb) | [PDF](pdfs/IND320_project_1_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_1_screencast.md) |
+| **Project 2 – APIs and databases** | [Notebook](notebooks/IND320_assignment2.ipynb) | [PDF](pdfs/IND320_project_2_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_2_screencast.md) |
+| **Project 3 – Data quality** | [Notebook](notebooks/IND320_assignment3.ipynb) | [PDF](pdfs/IND320_project_3_notebook.pdf) | Not recorded yet |
+
+## Folders
+
+| Folder | Contents |
+| --- | --- |
+| [`notebooks/`](notebooks/) | One notebook for each project. |
+| [`pdfs/`](pdfs/) | PDF versions of the notebooks. |
+| [`recordings/`](recordings/) | Screencast links for each project. |
+| [`pages/`](pages/) | Pages used by the shared Streamlit app. |
+| [`utils/`](utils/) | Python functions shared by the notebooks and app. |
+| [`data/`](data/) | Area polygons and sampled coordinates. |
+| [`scripts/`](scripts/) | Scripts for preparing data. |
+| [`docs/`](docs/) | Instructions for running the project locally. |
+
+`streamlit_app.py` starts the app. Requirements and configuration files stay in the root folder or `.streamlit/`.
+
+## Branches and history
+
+| Branch | Purpose |
+| --- | --- |
+| [`main`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/main) | Current combined version of Projects 1, 2 and 3. |
+| [`project-part-1`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-1) | Archive of the Project 1 version from 28 September 2026. |
+| [`project-part-2`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-2) | Development history for Project 2, merged into `main`. |
+| [`project-part-3`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-3) | Development branch for Project 3; reviewed changes are merged into `main`. |
+
+Project 1 was originally developed directly on `main`. The `project-part-1` archive branch was added on 4 November 2026 to make that earlier version easy to find. The existing `project-1` release contains its screencast.
+
+The project parts build on each other, so later branches also include earlier work. New work goes on the relevant project branch and is merged into `main` after review and the required feedback.
+
+GitHub's **Last commit message** column describes the latest change to a file or folder. A Project 3 message beside `notebooks/` therefore also appears when that folder contains all three notebooks.
 
 [Running the project locally](docs/running_locally.md)
