@@ -1,11 +1,5 @@
-# Screencasts
+# Project 3 screencast
 
-| Project | Video |
-| --- | --- |
-| Project 1 | [Watch the screencast](IND320_project_1_screencast.md) |
-| Project 2 | [Watch the screencast](IND320_project_2_screencast.md) |
-| Project 3 | Not recorded yet. |
+The required five-minute screencast has not been recorded yet.
 
-The video pages link to recordings hosted on GitHub.
-
-[Back to the project overview](../README.md)
+[Back to Project 3](../README.md)

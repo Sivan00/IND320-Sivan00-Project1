@@ -1,47 +1,21 @@
-# IND320 – Projects 1, 2 and 3
+# Project 3 – Data quality
 
-All three parts of my IND320 project are collected here. **`main` contains the latest combined version** and runs the published app. The repository keeps its original Project 1 name so the course links stay the same.
+This branch contains my third IND320 project: SPC and LOF for weather outliers, and STL and spectrograms for reservoir patterns.
 
-[Open the Streamlit app](https://ind320-sivan00-project1.streamlit.app/)
-
-## Project files
-
-The links below open the current files on `main`; there is no need to switch branches to find a project.
-
-| Project | Notebook | PDF | Screencast |
-| --- | --- | --- | --- |
-| **Project 1 – Reservoir data** | [Notebook](notebooks/IND320_assignment1.ipynb) | [PDF](pdfs/IND320_project_1_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_1_screencast.md) |
-| **Project 2 – APIs and databases** | [Notebook](notebooks/IND320_assignment2.ipynb) | [PDF](pdfs/IND320_project_2_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_2_screencast.md) |
-| **Project 3 – Data quality** | [Notebook](notebooks/IND320_assignment3.ipynb) | [PDF](pdfs/IND320_project_3_notebook.pdf) | Not recorded yet |
-
-## Folders
-
-| Folder | Contents |
+| Material | Link |
 | --- | --- |
-| [`notebooks/`](notebooks/) | One notebook for each project. |
-| [`pdfs/`](pdfs/) | PDF versions of the notebooks. |
-| [`recordings/`](recordings/) | Screencast links for each project. |
-| [`pages/`](pages/) | Pages used by the shared Streamlit app. |
-| [`utils/`](utils/) | Python functions shared by the notebooks and app. |
-| [`data/`](data/) | Area polygons and sampled coordinates. |
-| [`scripts/`](scripts/) | Scripts for preparing data. |
-| [`docs/`](docs/) | Instructions for running the project locally. |
+| Notebook | [Project 3 notebook](notebooks/IND320_assignment3.ipynb) |
+| PDF | [Project 3 PDF](pdfs/IND320_project_3_notebook.pdf) |
+| Screencast | **Not recorded yet.** |
 
-`streamlit_app.py` starts the app. Requirements and configuration files stay in the root folder or `.streamlit/`.
+## Code
 
-## Branches and history
+The new analyses are in `utils/quality_utils.py`. The Streamlit pages are `pages/reservoir_patterns.py` and `pages/weather_anomalies.py`. `data/areas/` contains polygons and sampled coordinates.
 
-| Branch | Purpose |
-| --- | --- |
-| [`main`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/main) | Current combined version of Projects 1, 2 and 3. |
-| [`project-part-1`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-1) | Archive of the Project 1 version from 28 September 2026. |
-| [`project-part-2`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-2) | Development history for Project 2, merged into `main`. |
-| [`project-part-3`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-3) | Development branch for Project 3; reviewed changes are merged into `main`. |
+[Run the project locally](docs/running_locally.md)
 
-Project 1 was originally developed directly on `main`. The `project-part-1` archive branch was added on 4 November 2026 to make that earlier version easy to find. The existing `project-1` release contains its screencast.
+The shared app keeps the features from the earlier parts. Their notebooks, PDFs and video pages are kept separately in [`archive/`](archive/).
 
-The project parts build on each other, so later branches also include earlier work. New work goes on the relevant project branch and is merged into `main` after review and the required feedback.
+[Open the shared Streamlit app](https://ind320-sivan00-project1.streamlit.app/) — deployed from `main` after reviewed changes are merged.
 
-GitHub's **Last commit message** column describes the latest change to a file or folder. A Project 3 message beside `notebooks/` therefore also appears when that folder contains all three notebooks.
-
-[Running the project locally](docs/running_locally.md)
+[All projects on main](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/main)
