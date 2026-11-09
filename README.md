@@ -12,7 +12,7 @@ Each project name opens its own page with only that part’s notebook, PDF and s
 | --- | --- | --- | --- |
 | [**Project 1 – Reservoir data**](projects/project-1/README.md) | [Notebook](notebooks/IND320_assignment1.ipynb) | [PDF](pdfs/IND320_project_1_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_1_screencast.md) |
 | [**Project 2 – APIs and databases**](projects/project-2/README.md) | [Notebook](notebooks/IND320_assignment2.ipynb) | [PDF](pdfs/IND320_project_2_Sivan_Hadji.pdf) | [Video](recordings/IND320_project_2_screencast.md) |
-| [**Project 3 – Data quality**](projects/project-3/README.md) | [Notebook](notebooks/IND320_assignment3.ipynb) | [PDF](pdfs/IND320_project_3_notebook.pdf) | Not recorded yet |
+| [**Project 3 – Data quality**](projects/project-3/README.md) | [Notebook](notebooks/IND320_assignment3.ipynb) | [PDF](pdfs/IND320_project_3_notebook.pdf) | [Video](recordings/IND320_project_3_screencast.md) |
 
 ## Folders
 
@@ -23,7 +23,7 @@ Each project name opens its own page with only that part’s notebook, PDF and s
 | [`recordings/`](recordings/) | Screencast links for each project. |
 | [`pages/`](pages/) | Pages used by the shared Streamlit app. |
 | [`utils/`](utils/) | Python functions shared by the notebooks and app. |
-| [`data/`](data/) | Area polygons and sampled coordinates. |
+| [`data/`](data/) | Area polygons; sample coordinates are generated when needed. |
 | [`scripts/`](scripts/) | Scripts for preparing data. |
 | [`docs/`](docs/) | Instructions for running the project locally. |
 

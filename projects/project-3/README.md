@@ -6,7 +6,7 @@ Weather outliers with SPC and LOF, and reservoir patterns with STL and a spectro
 | --- | --- |
 | Notebook | [Open Project 3 notebook](../../notebooks/IND320_assignment3.ipynb) |
 | PDF | [Open Project 3 PDF](../../pdfs/IND320_project_3_notebook.pdf) |
-| Screencast | **Not recorded yet.** |
+| Screencast | [Watch Project 3 screencast](../../recordings/IND320_project_3_screencast.md) |
 
 [Code and history for Project 3](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-3)
 

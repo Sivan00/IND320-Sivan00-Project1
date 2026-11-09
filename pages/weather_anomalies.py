@@ -35,7 +35,7 @@ if start_date > end_date:
 # Five locations give a manageable full-year request while still averaging away local variation.
 point_count = st.slider(
     "Sample locations used in the app", min_value=1, max_value=10, value=5,
-    help="The stored sample has 1,000 points per electricity area. A small subset keeps full-year weather requests practical.",
+    help="The reproducible sample has 1,000 points per electricity area. A small subset keeps full-year weather requests practical.",
 )
 
 with st.spinner("Getting hourly weather and averaging the selected locations…"):

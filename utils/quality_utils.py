@@ -100,7 +100,7 @@ def build_weather_sample(
     seed: int = 320,
 ) -> pd.DataFrame:
     """Sample 1,000 points in each of the five source weather regions."""
-    # I save each source region separately. The East and North combinations are
+    # I keep each source region separately. The East and North combinations are
     # built from these rows later, which keeps the 1,000-point requirement clear.
     codes = ["RS", "RØ", "RV", "RM", "RN"]
     pieces = [
@@ -125,6 +125,12 @@ def build_electricity_sample(
         for index, code in enumerate(area_codes)
     ]
     return pd.concat(pieces, ignore_index=True)
+
+
+@st.cache_data(show_spinner=False)
+def load_electricity_sample() -> pd.DataFrame:
+    """Regenerate the fixed 1,000-point sample per area without stored CSV files."""
+    return build_electricity_sample(load_electricity_areas(), n_each=1000, seed=640)
 
 
 def robust_limits(values: pd.Series | np.ndarray, n_sd: float = 3.0) -> tuple[float, float, float, float]:
@@ -324,23 +330,22 @@ def load_open_meteo_region(
     start_date: str,
     end_date: str,
     point_count: int = 1,
-    sample_file: str = "data/areas/electricity_sample_points.csv",
+    sample_points: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """Download ERA5 hourly weather and average the stored sample points."""
-    # Resolving the sample from the project folder also works inside notebooks/.
-    sample_path = Path(sample_file)
-    if not sample_path.is_absolute():
-        sample_path = Path(__file__).resolve().parents[1] / sample_path
-    samples = pd.read_csv(sample_path)
+    """Download ERA5 hourly weather and average reproducible sample points."""
+    # The app reuses the cached polygon sample; the notebook can pass its own table.
+    samples = load_electricity_sample() if sample_points is None else sample_points
+    if not {"area_group", "latitude", "longitude"}.issubset(samples.columns):
+        raise ValueError("sample_points must contain area_group, latitude and longitude")
     selected = samples.loc[samples["area_group"] == area_code]
     if point_count < 1:
         raise ValueError("point_count must be at least 1")
     if point_count > len(selected):
-        raise ValueError("point_count exceeds the number of saved locations for this area")
+        raise ValueError("point_count exceeds the number of sampled locations for this area")
     # A fixed sample per area keeps the app responsive and makes reruns comparable.
     chosen = selected.head(point_count)
     if chosen.empty:
-        raise ValueError(f"No saved sample points were found for {area_code}.")
+        raise ValueError(f"No sample points were found for {area_code}.")
 
     # Smaller monthly requests are more reliable than one very large yearly URL.
     first_day = pd.Timestamp(start_date).normalize()
