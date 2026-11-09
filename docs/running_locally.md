@@ -14,4 +14,4 @@ The notebooks are in `notebooks/`. Open them in VS Code or JupyterLab with the s
 
 Part 2 needs the local Cassandra container, Spark and the private settings described in `.env.example` and `.streamlit/secrets.toml.example`. Streamlit Cloud reads the MongoDB settings from its Secrets page. Real settings stay outside Git.
 
-Part 3 uses public NVE and Open-Meteo data. The saved area polygons and coordinate samples are in `data/areas/`. Shared Python functions are in `utils/`, and the Streamlit screens are in `pages/`.
+Part 3 uses public NVE and Open-Meteo data. The area polygons are in `data/areas/`. Coordinate samples are regenerated from those polygons with fixed seeds and cached in memory; CSV files are not needed. Shared Python functions are in `utils/`, and the Streamlit screens are in `pages/`.

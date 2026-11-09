@@ -7,3 +7,6 @@ __pycache__/
 .cache/
 output/
 /IND320_project_1_Sivan_Hadji.pdf
+
+# Data is downloaded or generated when needed.
+*.csv

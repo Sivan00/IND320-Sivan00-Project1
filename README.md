@@ -6,11 +6,11 @@ This branch contains my third IND320 project: SPC and LOF for weather outliers, 
 | --- | --- |
 | Notebook | [Project 3 notebook](notebooks/IND320_assignment3.ipynb) |
 | PDF | [Project 3 PDF](pdfs/IND320_project_3_notebook.pdf) |
-| Screencast | **Not recorded yet.** |
+| Screencast | [Watch Project 3 screencast](recordings/IND320_project_3_screencast.md) |
 
 ## Code
 
-The new analyses are in `utils/quality_utils.py`. The Streamlit pages are `pages/reservoir_patterns.py` and `pages/weather_anomalies.py`. `data/areas/` contains polygons and sampled coordinates.
+The new analyses are in `utils/quality_utils.py`. The Streamlit pages are `pages/reservoir_patterns.py` and `pages/weather_anomalies.py`. `data/areas/` contains polygons; coordinate samples are generated with fixed seeds.
 
 [Run the project locally](docs/running_locally.md)
 
