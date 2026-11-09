@@ -40,8 +40,5 @@ Each project name opens its own page with only that part’s notebook, PDF and s
 
 Project 1 was originally developed directly on `main`. The `project-part-1` archive branch was added on 4 November 2026 to make that earlier version easy to find. The existing `project-1` release contains its screencast.
 
-The project parts build on each other, so later branches also include earlier work. New work goes on the relevant project branch and is merged into `main` after review and the required feedback.
-
-GitHub's **Last commit message** column describes the latest change to a file or folder. A Project 3 message beside `notebooks/` therefore also appears when that folder contains all three notebooks.
 
 [Running the project locally](docs/running_locally.md)
