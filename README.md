@@ -38,7 +38,6 @@ Each project name opens its own page with only that part’s notebook, PDF and s
 | [`project-part-2`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-2) | Development history for Project 2, merged into `main`. |
 | [`project-part-3`](https://github.com/Sivan00/IND320-Sivan00-Project1/tree/project-part-3) | Development branch for Project 3; reviewed changes are merged into `main`. |
 
-Project 1 was originally developed directly on `main`. The `project-part-1` archive branch was added on 4 November 2026 to make that earlier version easy to find. The existing `project-1` release contains its screencast.
 
 
 [Running the project locally](docs/running_locally.md)
