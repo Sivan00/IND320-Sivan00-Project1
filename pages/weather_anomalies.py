@@ -15,7 +15,7 @@ from utils.quality_utils import (
 
 st.title("Weather outliers")
 st.write(
-    "I use hourly ERA5 estimates from Open-Meteo for a small random sample of "
+    "I use hourly ERA5 estimates from Open-Meteo for a reproducible sample of "
     "locations inside the selected NVE electricity-area polygon. "
     "The app averages those points before looking for unusual values."
 )
@@ -23,6 +23,13 @@ st.write(
 area_code = st.session_state["electricity_area"]
 # I use the bidding-zone polygons here because the weather sample should match the chosen area.
 st.caption(f"Weather sample locations are drawn from the NVE polygon for {area_code}.")
+with st.expander("Electricity areas and NVE regions"):
+    st.write(
+        "This page uses the selected electricity area (NO1–NO5). The separate NVE "
+        "weather-region samples use East = RS + RØ, West = RV and North = RM + RN, "
+        "with 1,000 points sampled inside each combined region. These region boundaries "
+        "do not match the electricity-area boundaries exactly."
+    )
 left, right = st.columns(2)
 with left:
     start_date = st.date_input("Start date", value=date(2024, 1, 1), key="weather_start")
@@ -32,13 +39,27 @@ if start_date > end_date:
     st.warning("The start date must be before the end date.")
     st.stop()
 
-# Five locations give a manageable full-year request while still averaging away local variation.
-point_count = st.slider(
-    "Sample locations used in the app", min_value=1, max_value=10, value=5,
-    help="The reproducible sample has 1,000 points per electricity area. A small subset keeps full-year weather requests practical.",
+# Keep a small default for responsive browsing; the full fixed sample is also selectable.
+point_count = st.selectbox(
+    "Sample locations used in the app", options=[5, 25, 100, 1000], index=0,
+    help="The reproducible sample has 1,000 points per electricity area. Larger requests take longer and can reach the free API limit.",
 )
 
-with st.spinner("Getting hourly weather and averaging the selected locations…"):
+request_key = (area_code, start_date.isoformat(), end_date.isoformat(), int(point_count))
+if point_count >= 100:
+    st.info(
+        "Large weather downloads can take a long time and reach Open-Meteo's free API limit, "
+        "especially for a full year. Completed batches are cached when storage is available; "
+        "cloud redeployments can clear that cache. "
+        "If the limit is reached, try again later or choose fewer locations."
+    )
+    if st.session_state.get("confirmed_weather_request") != request_key:
+        if st.button(f"Download weather for {point_count:,} locations"):
+            st.session_state["confirmed_weather_request"] = request_key
+        else:
+            st.stop()
+
+with st.spinner(f"Getting hourly weather for {point_count:,} locations in {area_code}…"):
     try:
         weather = load_open_meteo_region(
             area_code, start_date.isoformat(), end_date.isoformat(), int(point_count)
@@ -48,7 +69,7 @@ with st.spinner("Getting hourly weather and averaging the selected locations…"
         st.stop()
 
 st.caption(
-    f"The selected sample gives {len(weather):,} hourly observations from "
+    f"The {point_count:,} selected locations in {area_code} give {len(weather):,} hourly observations from "
     f"{weather['time'].min():%d %b %Y} to {weather['time'].max():%d %b %Y}. "
     "The API provides ERA5 reanalysis and does not need an access token for this use."
 )
