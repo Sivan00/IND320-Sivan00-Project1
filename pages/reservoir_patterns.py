@@ -38,7 +38,8 @@ with stl_tab:
     st.write(
         "The series is weekly, so a period of 52 represents one year. "
         "I leave the trend smoother automatic by default and keep robust fitting on "
-        "to reduce the effect of unusual weeks."
+        "to reduce the effect of unusual weeks. Look for the long-term trend, "
+        "the repeating seasonal pattern and the remaining variation."
     )
     # These settings let me compare how the smooth seasonal curve changes.
     left, right = st.columns(2)
@@ -68,7 +69,8 @@ with spectrum_tab:
     st.write(
         "The spectrogram uses overlapping windows to show how the strength of "
         "different frequencies changes over time. The fill series itself is still "
-        "weekly, so the frequency axis is in cycles per year."
+        "weekly, so the frequency axis is in cycles per year. Brighter colours show "
+        "stronger patterns; one cycle per year represents an annual pattern."
     )
     # A shorter window shows changes in more detail; overlap makes the timeline less choppy.
     window = st.slider("Window length (weeks)", min_value=26, max_value=min(260, len(fill)), value=min(104, len(fill)))

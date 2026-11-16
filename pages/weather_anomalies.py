@@ -16,8 +16,8 @@ from utils.quality_utils import (
 st.title("Weather outliers")
 st.write(
     "I use hourly ERA5 estimates from Open-Meteo for a reproducible sample of "
-    "locations inside the selected NVE electricity-area polygon. "
-    "The app averages those points before looking for unusual values."
+        "locations inside the selected NVE electricity-area polygon. "
+        "The app averages those points before looking for unusual values."
 )
 
 area_code = st.session_state["electricity_area"]
@@ -80,7 +80,8 @@ with spc_tab:
         "The DCT high-pass residual (SATV) is only used to decide which hours to "
         "flag. The chart stays on the original precipitation scale, with robust "
         "limits estimated from all residuals in the selected interval. "
-        "Select a full year for the annual analysis required in the assignment."
+        "Select a full year for the annual analysis required in the assignment. "
+        "Marked hours stand out from the pattern; they are not necessarily errors."
     )
     # These controls stay visible because each one changes how many hours are flagged.
     first, second = st.columns(2)
@@ -104,7 +105,8 @@ with lof_tab:
     st.write(
         "LOF compares each hourly temperature with nearby observations. I include "
         "the departure from a 24-hour rolling median as a second feature, which "
-        "helps separate a sudden change from an ordinary seasonal temperature."
+        "helps separate a sudden change from an ordinary seasonal temperature. "
+        "The 1% default controls how many hours are flagged; it is not a probability of error."
     )
     # The anomaly proportion controls how much of the series LOF marks as unusual.
     contamination = st.slider(
