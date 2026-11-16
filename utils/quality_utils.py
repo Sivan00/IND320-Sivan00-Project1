@@ -3,6 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+from io import StringIO
+import hashlib
+import json
+import os
+import tempfile
+import time
 from typing import TYPE_CHECKING, Iterable
 
 import matplotlib.pyplot as plt
@@ -23,6 +29,7 @@ if TYPE_CHECKING:
 OPEN_METEO_ARCHIVE = "https://archive-api.open-meteo.com/v1/archive"
 NVE_REGIONS_FILE = Path(__file__).resolve().parents[1] / "data" / "areas" / "nve_regions.zip"
 ELECTRICITY_AREAS_FILE = Path(__file__).resolve().parents[1] / "data" / "areas" / "electricity_areas.zip"
+WEATHER_BATCH_CACHE = Path(__file__).resolve().parents[1] / ".cache" / "weather_batches"
 
 def load_nve_regions(path: str | Path = NVE_REGIONS_FILE) -> gpd.GeoDataFrame:
     """Read the NVE region polygons bundled with this project."""
@@ -111,6 +118,27 @@ def build_weather_sample(
     return pd.concat(pieces, ignore_index=True)
 
 
+def build_combined_weather_sample(
+    regions: gpd.GeoDataFrame, n_each: int = 1000, seed: int = 320
+) -> pd.DataFrame:
+    """Sample equally by area in the three combined NVE weather regions.
+
+    Each combined region has its own sample: East is RS + RØ, West is RV,
+    and North is RM + RN. NVE administrative regions approximate, rather than
+    exactly reproduce, precipitation/catchment boundaries.
+    """
+    groups = {"East": ("RS", "RØ"), "West": ("RV",), "North": ("RM", "RN")}
+    available = set(regions["reg_code"])
+    missing = set().union(*map(set, groups.values())) - available
+    if missing:
+        raise ValueError(f"Missing NVE region polygons: {sorted(missing)}")
+    return pd.concat(
+        [sample_region_points(regions, codes, n_each, seed + i).assign(region_group=name)
+         for i, (name, codes) in enumerate(groups.items())],
+        ignore_index=True,
+    )
+
+
 def build_electricity_sample(
     areas: gpd.GeoDataFrame,
     n_each: int = 1000,
@@ -131,6 +159,12 @@ def build_electricity_sample(
 def load_electricity_sample() -> pd.DataFrame:
     """Regenerate the fixed 1,000-point sample per area without stored CSV files."""
     return build_electricity_sample(load_electricity_areas(), n_each=1000, seed=640)
+
+
+@st.cache_data(show_spinner=False)
+def load_combined_weather_sample() -> pd.DataFrame:
+    """Regenerate fixed samples for East, West and North weather regions."""
+    return build_combined_weather_sample(load_nve_regions(), n_each=1000, seed=320)
 
 
 def robust_limits(values: pd.Series | np.ndarray, n_sd: float = 3.0) -> tuple[float, float, float, float]:
@@ -324,6 +358,70 @@ def fill_spectrogram(
     return fig, summary
 
 
+@st.cache_data(ttl=604800, show_spinner=False)
+def _weather_batch_summary(coordinates: tuple[tuple[float, float], ...], start_date: str, end_date: str) -> pd.DataFrame:
+    """Download a batch and cache hourly sums/counts for later retries."""
+    params = {
+        "latitude": ",".join(f"{latitude:.5f}" for latitude, _ in coordinates),
+        "longitude": ",".join(f"{longitude:.5f}" for _, longitude in coordinates),
+        "start_date": start_date, "end_date": end_date,
+        "hourly": "precipitation,temperature_2m", "models": "era5",
+        "timezone": "Europe/Oslo", "temperature_unit": "celsius", "precipitation_unit": "mm",
+    }
+    expected = pd.date_range(pd.Timestamp(start_date), pd.Timestamp(end_date) + pd.Timedelta(hours=23), freq="h")
+    key = hashlib.sha256(json.dumps(params, sort_keys=True).encode()).hexdigest()
+    cache_file = WEATHER_BATCH_CACHE / f"{key}.json"
+    try:
+        if time.time() - cache_file.stat().st_mtime < 7 * 86400:
+            cached = pd.read_json(StringIO(cache_file.read_text()), orient="split")
+            cached.index = pd.to_datetime(cached.index)
+            cached.index.name = "time"
+            if (set(cached.columns) == {"precipitation_sum", "temperature_2m_sum", "precipitation_count", "temperature_2m_count"}
+                    and cached.index.equals(expected) and cached.notna().all().all()
+                    and (cached[["precipitation_count", "temperature_2m_count"]] == len(coordinates)).all().all()):
+                return cached
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    # Spread large batches out because multiple locations and longer periods
+    # count towards Open-Meteo's per-minute quota. Cached batches do not wait.
+    days = (pd.Timestamp(end_date) - pd.Timestamp(start_date)).days + 1
+    if len(coordinates) >= 25:
+        time.sleep(6.5 * (len(coordinates) / 50) * max(1, days / 14))
+    response = requests.get(OPEN_METEO_ARCHIVE, params=params, timeout=(10, 90))
+    if response.status_code == 429:
+        raise ValueError("Open-Meteo's request limit was reached. Completed batches are cached "
+                         "when local storage is available; try again later or use fewer locations.")
+    response.raise_for_status()
+    payload = response.json()
+    locations = payload if isinstance(payload, list) else [payload]
+    frames = []
+    for location in locations:
+        hourly = location.get("hourly", {})
+        if not hourly.get("time"):
+            continue
+        frame = pd.DataFrame({"time": pd.to_datetime(hourly["time"]),
+                              "precipitation": hourly.get("precipitation"),
+                              "temperature_2m": hourly.get("temperature_2m")})
+        if (len(frame) != len(expected) or not pd.DatetimeIndex(frame["time"]).equals(expected)
+                or frame[["precipitation", "temperature_2m"]].isna().any().any()):
+            raise ValueError("Open-Meteo returned incomplete hourly data; no partial average was used.")
+        frames.append(frame)
+    if len(locations) != len(coordinates) or len(frames) != len(coordinates):
+        raise ValueError(f"Open-Meteo returned {len(frames)} of {len(coordinates)} requested locations; no partial average was used.")
+    observations = pd.concat(frames, ignore_index=True).groupby("time")[["precipitation", "temperature_2m"]]
+    summary = observations.sum().add_suffix("_sum").join(observations.count().add_suffix("_count"))
+    try:
+        WEATHER_BATCH_CACHE.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile("w", dir=WEATHER_BATCH_CACHE, delete=False) as tmp:
+            tmp.write(summary.to_json(orient="split", date_format="iso", double_precision=15))
+            temp_name = tmp.name
+        os.replace(temp_name, cache_file)
+    except OSError:
+        # The live result is still valid when a deployment has read-only storage.
+        pass
+    return summary
+
+
 @st.cache_data(ttl=86400, show_spinner=False)
 def load_open_meteo_region(
     area_code: str,
@@ -332,12 +430,16 @@ def load_open_meteo_region(
     point_count: int = 1,
     sample_points: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """Download ERA5 hourly weather and average reproducible sample points."""
-    # The app reuses the cached polygon sample; the notebook can pass its own table.
-    samples = load_electricity_sample() if sample_points is None else sample_points
-    if not {"area_group", "latitude", "longitude"}.issubset(samples.columns):
-        raise ValueError("sample_points must contain area_group, latitude and longitude")
-    selected = samples.loc[samples["area_group"] == area_code]
+    """Average ERA5 at sampled NO1–NO5 areas or East/West/North regions."""
+    # Electricity areas and combined regions use different polygon samples.
+    samples = sample_points
+    if samples is None:
+        samples = (load_combined_weather_sample() if area_code in {"East", "West", "North"}
+                   else load_electricity_sample())
+    group_column = "area_group" if "area_group" in samples else "region_group"
+    if not {group_column, "latitude", "longitude"}.issubset(samples.columns):
+        raise ValueError("sample_points must contain an area_group or region_group, latitude and longitude")
+    selected = samples.loc[samples[group_column] == area_code]
     if point_count < 1:
         raise ValueError("point_count must be at least 1")
     if point_count > len(selected):
@@ -359,48 +461,10 @@ def load_open_meteo_region(
         month_end = min(last_day, month.end_time.normalize())
         for start in range(0, len(chosen), 50):
             batch = chosen.iloc[start : start + 50]
-            params = {
-                "latitude": ",".join(f"{value:.5f}" for value in batch["latitude"]),
-                "longitude": ",".join(f"{value:.5f}" for value in batch["longitude"]),
-                "start_date": month_start.date().isoformat(),
-                "end_date": month_end.date().isoformat(),
-                "hourly": "precipitation,temperature_2m",
-                "models": "era5",
-                "timezone": "Europe/Oslo",
-                "temperature_unit": "celsius",
-                "precipitation_unit": "mm",
-            }
-            # Smaller requests keep the response size manageable for this endpoint.
-            response = requests.get(OPEN_METEO_ARCHIVE, params=params, timeout=(10, 60))
-            if response.status_code == 429:
-                try:
-                    reason = response.json().get("reason", "Open-Meteo rate limit reached.")
-                except ValueError:
-                    reason = "Open-Meteo rate limit reached."
-                raise ValueError(f"Open-Meteo could not serve this request: {reason}")
-            response.raise_for_status()
-            payload = response.json()
-            locations = payload if isinstance(payload, list) else [payload]
-            frames = []
-            for location in locations:
-                hourly = location.get("hourly", {})
-                if not hourly.get("time"):
-                    continue
-                frames.append(
-                    pd.DataFrame(
-                        {
-                            "time": pd.to_datetime(hourly["time"]),
-                            "precipitation": hourly.get("precipitation"),
-                            "temperature_2m": hourly.get("temperature_2m"),
-                        }
-                    )
-                )
-            if not frames:
-                continue
-            batch_weather = pd.concat(frames, ignore_index=True)
-            sums = batch_weather.groupby("time")[["precipitation", "temperature_2m"]].sum(min_count=1)
-            counts = batch_weather.groupby("time")[["precipitation", "temperature_2m"]].count()
-            batch_summary = sums.add_suffix("_sum").join(counts.add_suffix("_count"))
+            coordinates = tuple(zip(batch["latitude"].astype(float), batch["longitude"].astype(float)))
+            batch_summary = _weather_batch_summary(
+                coordinates, month_start.date().isoformat(), month_end.date().isoformat()
+            )
             batch_summaries.append(batch_summary)
 
     if not batch_summaries:
