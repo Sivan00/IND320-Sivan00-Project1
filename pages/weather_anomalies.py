@@ -2,16 +2,14 @@
 
 from datetime import date
 
-import matplotlib.pyplot as plt
 import requests
 import streamlit as st
 
 from utils.quality_utils import (
-    lof_temperature_plot,
     load_open_meteo_region,
-    spc_precipitation_plot,
 )
 
+from utils.interactive_weather import weather_check
 
 st.title("Weather outliers")
 st.write(
@@ -74,54 +72,30 @@ st.caption(
     "The API provides ERA5 reanalysis and does not need an access token for this use."
 )
 
-spc_tab, lof_tab = st.tabs(["SPC precipitation outliers", "LOF temperature anomalies"])
+property_name = st.selectbox("Weather property", ["Temperature", "Precipitation"])
+spc_tab, lof_tab = st.tabs(["SATV and SPC", "LOF"])
 with spc_tab:
-    st.write(
-        "The DCT high-pass residual (SATV) is only used to decide which hours to "
-        "flag. The chart stays on the original precipitation scale, with robust "
-        "limits estimated from all residuals in the selected interval. "
-        "Select a full year for the annual analysis required in the assignment. "
-        "Marked hours stand out from the pattern; they are not necessarily errors."
-    )
-    # These controls stay visible because each one changes how many hours are flagged.
+    st.write("DCT separates a background from the short-term variation (SATV). The limits flag unusual hours; a flag does not necessarily mean an error.")
     first, second = st.columns(2)
     with first:
-        cutoff = st.slider("DCT cutoff fraction", min_value=0.02, max_value=0.30, value=0.08, step=0.01)
+        cutoff = st.slider("DCT cutoff fraction", 0.02, 0.30, 0.08, 0.01)
     with second:
-        n_sd = st.slider("Robust limit multiplier", min_value=1.0, max_value=5.0, value=3.0, step=0.5)
-    # SATV is kept inside the function for detection; the user sees precipitation units.
+        n_sd = st.slider("Robust limit multiplier", 1.0, 5.0, 3.0, 0.5)
     try:
-        fig, summary = spc_precipitation_plot(weather, cutoff=float(cutoff), n_sd=float(n_sd))
-        st.pyplot(fig)
-        plt.close(fig)
-        st.write(
-            f"The DCT check flagged {summary['outliers']:,} of {summary['observations']:,} "
-            f"hours ({summary['outlier_percent']:.2f}%)."
-        )
+        fig, count, total = weather_check(weather, property_name, "SPC", cutoff=cutoff, n_sd=n_sd)
+        st.plotly_chart(fig, width="stretch")
+        st.write(f"The DCT check flagged {count:,} of {total:,} hours ({count / total * 100:.2f}%).")
     except ValueError as error:
         st.warning(str(error))
-
 with lof_tab:
-    st.write(
-        "LOF compares each hourly temperature with nearby observations. I include "
-        "the departure from a 24-hour rolling median as a second feature, which "
-        "helps separate a sudden change from an ordinary seasonal temperature. "
-        "The 1% default controls how many hours are flagged; it is not a probability of error."
-    )
-    # The anomaly proportion controls how much of the series LOF marks as unusual.
-    contamination = st.slider(
-        "Expected anomaly proportion", min_value=0.005, max_value=0.05,
-        value=0.01, step=0.005, format="%.3f",
-    )
-    # LOF receives the visible contamination setting rather than a hidden fixed value.
+    st.write("LOF compares each value and its change from a 24-hour median with nearby observations. The default 1% is a setting, not the probability of an error.")
+    if property_name == "Precipitation":
+        st.caption("Many precipitation values are zero, so repeated values can make LOF less reliable. Interpret these flags carefully.")
+    contamination = st.slider("Expected anomaly proportion", 0.005, 0.05, 0.01, 0.005, format="%.3f")
     try:
-        fig, summary = lof_temperature_plot(weather, contamination=float(contamination))
-        st.pyplot(fig)
-        plt.close(fig)
-        st.write(
-            f"LOF marked {summary['anomalies']:,} of {summary['observations']:,} "
-            f"hours ({summary['anomaly_percent']:.2f}%)."
-        )
+        fig, count, total = weather_check(weather, property_name, "LOF", contamination=contamination)
+        st.plotly_chart(fig, width="stretch")
+        st.write(f"LOF marked {count:,} of {total:,} hours ({count / total * 100:.2f}%).")
     except ValueError as error:
         st.warning(str(error))
 

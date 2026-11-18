@@ -26,7 +26,15 @@ if len(monthly) < 48:
     st.warning("At least four years of monthly observations are needed for this example.")
     st.stop()
 months = monthly.index.strftime("%Y-%m").tolist()
-end_month = st.selectbox("Last month in the history", months, index=len(months) - 1)
+if st.session_state.get("selected_month") not in months:
+    st.session_state.selected_month = months[-1]
+if st.session_state.get("forecast_month") != st.session_state.selected_month:
+    st.session_state.forecast_month = st.session_state.selected_month
+
+def save_month():
+    st.session_state.selected_month = st.session_state.forecast_month
+
+end_month = st.selectbox("Last month in the history", months, key="forecast_month", on_change=save_month)
 selected = monthly.loc[:pd.Timestamp(end_month + "-01")]
 if len(selected) < 48:
     st.info("Choose a later month to include at least four years of history.")
@@ -63,8 +71,22 @@ recent = selected.tail(min(history, 36))
 fig.add_scatter(x=recent.index, y=recent, name="Observed", line={"color": "#2F6F73"})
 fig.add_scatter(x=[recent.index[-1], *forecast.date], y=[recent.iloc[-1], *forecast.predicted],
                 name="Forecast", mode="lines+markers", line={"color": "#A45A52", "dash": "dash"})
+# The animation reveals one forecast month at a time.
+fig.frames = [
+    go.Frame(name=str(i), traces=[1], data=[go.Scatter(
+        x=[recent.index[-1], *forecast.date.iloc[:i]],
+        y=[recent.iloc[-1], *forecast.predicted.iloc[:i]],
+    )]) for i in range(1, len(forecast) + 1)
+]
+steps = [{"label": str(i), "method": "animate",
+          "args": [[str(i)], {"mode": "immediate", "frame": {"duration": 0}, "transition": {"duration": 0}}]}
+         for i in range(1, len(forecast) + 1)]
 fig.update_layout(title=f"{area}: monthly reservoir fill", xaxis_title="Month", yaxis_title="Fill level (%)",
-                  hovermode="x unified", yaxis_range=[0, 100])
+                  hovermode="x unified", yaxis_range=[0, 100],
+                  updatemenus=[{"type": "buttons", "buttons": [{"label": "Play forecast", "method": "animate",
+                      "args": [None, {"fromcurrent": False, "frame": {"duration": 600, "redraw": False},
+                                      "transition": {"duration": 200}}]}]}],
+                  sliders=[{"active": len(steps) - 1, "currentvalue": {"prefix": "Forecast month: "}, "steps": steps}])
 st.plotly_chart(fig, width="stretch")
 st.caption(f"One-month-ahead test: average error {summary['mae']:.1f} percentage points over {summary['validation_months']} months.")
 if currencies:

@@ -1,7 +1,7 @@
 """Show the ENTSO-E transfer data that has been curated in MongoDB."""
 
-import matplotlib.dates as mdates
-import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 from calendar import month_name
 from calendar import isleap
@@ -56,19 +56,10 @@ with left:
     if direction_totals.isna().any() or direction_totals.sum() <= 0:
         st.warning("There is not enough recorded transfer to draw this pie chart.")
         st.stop()
-    fig, ax = plt.subplots(figsize=(5.8, 4.6))
-    ax.pie(
-        direction_totals,
-        labels=direction_totals.index,
-        autopct="%1.1f%%",
-        startangle=90,
-        colors=["#2F6F73", "#D58A5C"],
-        wedgeprops={"linewidth": 1, "edgecolor": "white"},
-    )
-    ax.set_title(f"{connection}, {year}")
-    ax.set_xlabel(f"Recorded transfer: {direction_totals.sum() / 1e6:,.2f} TWh")
-    st.pyplot(fig)
-    plt.close(fig)
+    fig = px.pie(values=direction_totals.values, names=direction_totals.index,
+                 title=f"{connection}, {year}", color_discrete_sequence=["#2F6F73", "#D58A5C"])
+    st.plotly_chart(fig, width="stretch")
+    st.caption(f"Recorded transfer: {direction_totals.sum() / 1e6:,.2f} TWh")
 
 with right:
     st.subheader("Monthly transfer pattern")
@@ -96,50 +87,19 @@ with right:
 
     if not chosen_months:
         st.info("Choose at least one month to show the line plot.")
-    fig, ax = plt.subplots(figsize=(7.2, 4.6))
-    # The connection and year come from the left column. Colour and line style
-    # then make the two directions readable across any set of selected months.
-    for (line_connection, direction), rows in monthly.groupby(
-        ["connection", "direction"]
-    ):
-        for index, chosen_month in enumerate(chosen_months):
-            month_rows = rows.loc[rows["month"] == chosen_month]
-            if month_rows.empty:
-                continue
-            # Plotting each month separately leaves a real gap between January
-            # and October instead of drawing a misleading diagonal line.
-            ax.plot(
-                month_rows["timestamp"],
-                month_rows["value_mw"],
-                label=f"{line_connection} | {direction}" if index == 0 else None,
-                linewidth=1.5,
-                color={"Into Norway": "#2F6F73", "Out of Norway": "#D58A5C"}[direction],
-                linestyle="--" if direction == "Into Norway" else "-",
-            )
-    if chosen_month_names:
-        months_in_title = (
-            ", ".join(chosen_month_names)
-            if len(chosen_month_names) <= 4
-            else f"{len(chosen_month_names)} selected months"
-        )
-        ax.set_title(
-            f"{connection}: {months_in_title} {year}",
-            loc="left",
-            fontweight="bold",
-        )
-    ax.set_xlabel("Date (Norwegian time)")
-    ax.set_ylabel("MW")
-    ax.grid(axis="y", color="#E7E7E7", linewidth=0.7)
-    ax.spines[["top", "right"]].set_visible(False)
-    locator = mdates.AutoDateLocator(minticks=3, maxticks=6, tz=ZoneInfo("Europe/Oslo"))
-    ax.xaxis.set_major_locator(locator)
-    ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator, tz=ZoneInfo("Europe/Oslo")))
     if chosen_months:
-        ax.legend(frameon=False, fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.2), ncols=2)
-    fig.tight_layout()
-    if chosen_months:
-        st.pyplot(fig)
-    plt.close(fig)
+        fig = go.Figure()
+        for direction, rows in monthly.groupby("direction"):
+            for index, chosen_month in enumerate(chosen_months):
+                month_rows = rows.loc[rows["month"] == chosen_month].sort_values("timestamp")
+                if month_rows.empty:
+                    continue
+                fig.add_scatter(x=month_rows["timestamp"], y=month_rows["value_mw"],
+                                name=direction, legendgroup=direction, showlegend=index == 0,
+                                line={"color": {"Into Norway": "#2F6F73", "Out of Norway": "#D58A5C"}.get(direction, "#947340")})
+        fig.update_layout(title=f"{connection}: selected months in {year}",
+                          xaxis_title="Date (Norwegian time)", yaxis_title="MW")
+        st.plotly_chart(fig, width="stretch")
 
 with st.expander("Data source and preparation"):
     st.write(

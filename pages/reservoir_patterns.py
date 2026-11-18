@@ -3,6 +3,10 @@
 from datetime import date
 
 import matplotlib.pyplot as plt
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from scipy.signal import spectrogram
 import streamlit as st
 
 from utils.data_utils import load_reservoirs
@@ -56,8 +60,14 @@ with stl_tab:
             fill, period=int(period), seasonal_smoother=int(seasonal),
             trend_smoother=trend, robust=robust,
         )
-        st.pyplot(fig)
         plt.close(fig)
+        chart = make_subplots(rows=4, cols=1, shared_xaxes=True, subplot_titles=["Observed", "Trend", "Seasonal", "Residual"])
+        for row, column in enumerate(components.columns, 1):
+            chart.add_scatter(x=components.index, y=components[column], name=column.capitalize(),
+                              line={"color": "#2F6F73"}, row=row, col=1)
+            chart.update_yaxes(title_text="%" if column in ("observed", "trend") else "pp", row=row, col=1)
+        chart.update_layout(height=750, showlegend=False, title="STL decomposition")
+        st.plotly_chart(chart, width="stretch")
         st.write(
             f"The decomposition uses {len(components):,} observations. "
             f"The last fitted trend value is {components['trend'].iloc[-1]:.1f}%."
@@ -83,8 +93,15 @@ with spectrum_tab:
         fig, summary = fill_spectrogram(
             fill, window_weeks=int(window), overlap_weeks=int(overlap)
         )
-        st.pyplot(fig)
         plt.close(fig)
+        clean = fill.dropna()
+        frequency, times, power = spectrogram(clean.to_numpy(), fs=52, window="hann", nperseg=int(window),
+                                               noverlap=int(overlap), detrend="linear", scaling="spectrum")
+        chart = go.Figure(go.Heatmap(x=times * 52, y=frequency, z=10 * np.log10(power + 1e-12),
+                                     colorscale="Viridis", colorbar={"title": "Power (dB)"}))
+        chart.update_layout(title="Spectrogram of weekly reservoir fill", xaxis_title="Weeks from start",
+                            yaxis_title="Frequency (cycles/year)")
+        st.plotly_chart(chart, width="stretch")
         st.caption(
             f"The calculation uses {summary['observations']:,} weekly values and "
             f"creates {summary['time_windows']} overlapping windows."
