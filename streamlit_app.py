@@ -14,18 +14,21 @@ reservoir_api = st.Page("pages/reservoir_api.py", title="NVE area guide")
 power_transfers = st.Page("pages/power_transfers.py", title="Power transfers")
 reservoir_patterns = st.Page("pages/reservoir_patterns.py", title="Reservoir patterns")
 weather_anomalies = st.Page("pages/weather_anomalies.py", title="Weather outliers")
+weather_relationship = st.Page("pages/weather_relationship.py", title="Weather and reservoirs")
+exchange_rates = st.Page("pages/exchange_rates.py", title="Exchange rates")
+reservoir_forecast = st.Page("pages/reservoir_forecast.py", title="Reservoir forecast")
 
 # One navigation list keeps the same sidebar available on every page.
 page = st.navigation(
-    [home, table, plots, reservoir_patterns, weather_anomalies, reservoir_api, power_transfers],
+    [home, table, plots, reservoir_patterns, weather_anomalies, reservoir_api, power_transfers, weather_relationship, exchange_rates, reservoir_forecast],
     position="sidebar",
 )
-st.sidebar.caption("IND320 project 3 | Sivan")
+st.sidebar.caption("IND320 project 4 | Sivan")
 # A widget in the entry point keeps the same selection when pages change.
 # Both the NVE pattern analysis and ERA5 download use this electricity area.
 st.sidebar.selectbox(
     "Electricity area", ["NO1", "NO2", "NO3", "NO4", "NO5"],
     index=2, key="electricity_area",
-    help="Shared by Reservoir patterns and Weather outliers.",
+    help="Shared by the weather and reservoir analysis pages.",
 )
 page.run()
