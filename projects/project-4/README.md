@@ -1,7 +1,12 @@
-# Project 4 – Forecasting
+# Project 4 - Forecasting
 
-[Notebook](../../notebooks/IND320_assignment4.ipynb)
+| File | Link |
+| --- | --- |
+| Notebook | [Open the notebook](../../notebooks/IND320_assignment4.ipynb) |
+| PDF | [Open the notebook PDF](../../pdfs/IND320_project_4_notebook.pdf) |
+| Screencast | [Watch the final screencast](../../recordings/IND320_project_4_screencast.md) |
+| App | [Open the Streamlit app](https://ind320-sivan00-project1.streamlit.app/) |
 
-Work in progress on the `project-part-4` branch.
+This part brings together the earlier work and adds exchange rates, an interactive map and reservoir forecasting.
 
-[Back to the project overview](../../README.md)
+[Back to all projects](../../README.md)

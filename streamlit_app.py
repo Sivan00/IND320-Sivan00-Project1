@@ -9,9 +9,7 @@ st.set_page_config(page_title="Norwegian energy data | IND320", layout="wide")
 # I keep each screen in its own file so the page code stays separate from navigation.
 home = st.Page("pages/home.py", title="Home", default=True)
 area_map = st.Page("pages/area_map.py", title="Area map")
-table = st.Page("pages/data_table.py", title="Reservoir table")
-plots = st.Page("pages/plots.py", title="Reservoir plots")
-reservoir_api = st.Page("pages/reservoir_api.py", title="NVE area guide")
+reservoir_data = st.Page("pages/reservoir_data.py", title="Reservoir data")
 power_transfers = st.Page("pages/power_transfers.py", title="Power transfers")
 reservoir_patterns = st.Page("pages/reservoir_patterns.py", title="Reservoir patterns")
 weather_anomalies = st.Page("pages/weather_anomalies.py", title="Weather outliers")
@@ -21,9 +19,9 @@ reservoir_forecast = st.Page("pages/reservoir_forecast.py", title="Reservoir for
 
 # One navigation list keeps the same sidebar available on every page.
 page = st.navigation(
-    {"Explore": [home, area_map, table, plots, reservoir_api, power_transfers],
+    {"Explore": [home, area_map, reservoir_data, power_transfers, exchange_rates],
      "Analysis": [reservoir_patterns, weather_anomalies, weather_relationship],
-     "Forecast": [reservoir_forecast, exchange_rates]},
+     "Forecast": [reservoir_forecast]},
     position="sidebar",
 )
 st.sidebar.caption("IND320 project 4 | Sivan")

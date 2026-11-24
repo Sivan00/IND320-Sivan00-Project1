@@ -28,6 +28,19 @@ class InteractiveWeatherTests(unittest.TestCase):
         plt.close(old)
         self.assertEqual((flags, count), (original['anomalies'], original['observations']))
 
+    def test_spc_flags_match_the_limits_on_the_original_scale(self):
+        for property_name, column in (("Temperature", "temperature_2m"), ("Precipitation", "precipitation")):
+            fig, count, total = weather_check(self.data, property_name, "SPC", cutoff=0.08, n_sd=3.0)
+            values = np.asarray(fig.data[0].y)
+            lower, upper = np.asarray(fig.data[2].y), np.asarray(fig.data[3].y)
+            expected = (values < lower) | (values > upper)
+            np.testing.assert_array_equal(values, self.data[column].to_numpy())
+            np.testing.assert_allclose(np.asarray(fig.data[-1].y), values[expected])
+            self.assertEqual(count, int(expected.sum()))
+            self.assertEqual(total, len(values))
+            self.assertGreater(count, 0)
+            self.assertNotIn("SATV", [trace.name for trace in fig.data])
+
     def test_both_properties_can_be_used_for_both_methods(self):
         for property_name in ('Temperature', 'Precipitation'):
             for method in ('SPC', 'LOF'):

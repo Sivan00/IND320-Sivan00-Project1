@@ -31,6 +31,13 @@ if start > end:
 try:
     with st.spinner(f"Loading weather and reservoir data for {area}…"):
         weather = load_open_meteo_region(area, start.isoformat(), end.isoformat(), point_count=5)
+        # Compare full UTC months only, not a partial weather month with a full reservoir month.
+        counts = weather.groupby(weather["time"].dt.to_period("M")).size()
+        full_months = counts[counts == counts.index.days_in_month * 24].index
+        weather = weather.loc[weather["time"].dt.to_period("M").isin(full_months)]
+        if weather.empty:
+            st.info("Choose dates covering at least one full calendar month.")
+            st.stop()
         reservoir = monthly_reservoir(load_reservoirs(), area)
         result = sliding_weather_correlation(reservoir, weather, property_name, window, lag)
 except (requests.RequestException, ValueError) as error:
@@ -44,6 +51,6 @@ fig = px.line(result, x="date", y="correlation", markers=True,
 fig.update_layout(title=f"{area}: moving correlation", yaxis_range=[-1, 1])
 fig.add_hline(y=0, line_dash="dash", line_color="#777777")
 st.plotly_chart(fig, width="stretch")
-st.caption("The line shows a moving correlation, not proof that weather caused a change in filling. Weather values are monthly averages from five sampled points.")
+st.caption("The line shows a moving correlation, not proof that weather caused a change in filling. Weather values are complete UTC-month averages from five sampled points. Incomplete edge months are left out.")
 with st.expander("Show values"):
     st.dataframe(result, hide_index=True, width="stretch")

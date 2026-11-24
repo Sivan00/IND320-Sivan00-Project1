@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 import streamlit as st
 from calendar import month_name
 from calendar import isleap
-from zoneinfo import ZoneInfo
 
 from utils.database_utils import load_power_transfers
 
@@ -94,12 +93,15 @@ with right:
                 month_rows = rows.loc[rows["month"] == chosen_month].sort_values("timestamp")
                 if month_rows.empty:
                     continue
-                fig.add_scatter(x=month_rows["timestamp"], y=month_rows["value_mw"],
+                # Convert stored UTC timestamps to Norwegian wall time for the displayed axis.
+                local_times = month_rows["timestamp"].dt.tz_convert("Europe/Oslo").dt.tz_localize(None)
+                fig.add_scatter(x=local_times, y=month_rows["value_mw"],
                                 name=direction, legendgroup=direction, showlegend=index == 0,
                                 line={"color": {"Into Norway": "#2F6F73", "Out of Norway": "#D58A5C"}.get(direction, "#947340")})
         fig.update_layout(title=f"{connection}: selected months in {year}",
                           xaxis_title="Date (Norwegian time)", yaxis_title="MW")
         st.plotly_chart(fig, width="stretch")
+        st.caption("Times are shown in Europe/Oslo; the autumn clock change repeats one local hour.")
 
 with st.expander("Data source and preparation"):
     st.write(

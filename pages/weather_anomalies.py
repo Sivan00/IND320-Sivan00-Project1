@@ -69,13 +69,13 @@ with st.spinner(f"Getting hourly weather for {point_count:,} locations in {area_
 st.caption(
     f"The {point_count:,} selected locations in {area_code} give {len(weather):,} hourly observations from "
     f"{weather['time'].min():%d %b %Y} to {weather['time'].max():%d %b %Y}. "
-    "The API provides ERA5 reanalysis and does not need an access token for this use."
+    "Times are UTC. The API provides ERA5 reanalysis and does not need an access token for this use."
 )
 
 property_name = st.selectbox("Weather property", ["Temperature", "Precipitation"])
 spc_tab, lof_tab = st.tabs(["SATV and SPC", "LOF"])
 with spc_tab:
-    st.write("DCT separates a background from the short-term variation (SATV). The limits flag unusual hours; a flag does not necessarily mean an error.")
+    st.write("DCT separates a background from the short-term variation (SATV). SATV is used to calculate the limits and flag unusual hours; the SATV values themselves are not plotted. A flag does not necessarily mean an error.")
     first, second = st.columns(2)
     with first:
         cutoff = st.slider("DCT cutoff fraction", 0.02, 0.30, 0.08, 0.01)

@@ -8,10 +8,12 @@ python3.12 -m venv .venv
 .venv/bin/python -m streamlit run streamlit_app.py
 ```
 
-On my Mac, the existing environment is one folder up, so I use `../.venv/bin/python`.
+Use the Python environment selected in VS Code when running the notebook.
 
 The notebooks are in `notebooks/`. Open them in VS Code or JupyterLab with the same Python environment. Part 1 is the saved CSV-based work; the current app uses NVE directly. To rerun Part 1, download the original `reservoirs.csv` from the course repository and place it in `data/`.
 
 Part 2 needs the local Cassandra container, Spark and the private settings described in `.env.example` and `.streamlit/secrets.toml.example`. Streamlit Cloud reads the MongoDB settings from its Secrets page. Real settings stay outside Git.
 
 Part 3 uses public NVE and Open-Meteo data. The area polygons are in `data/areas/`. Coordinate samples are regenerated from those polygons with fixed seeds and cached in memory; CSV files are not needed. Shared Python functions are in `utils/`, and the Streamlit screens are in `pages/`.
+
+Part 4 uses the same NVE and Open-Meteo data, plus Norges Bank exchange rates and daily spot prices. The forecast uses River. The map weather is a small five-point sample; the forecast weather uses one point.

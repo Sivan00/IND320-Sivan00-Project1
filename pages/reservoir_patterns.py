@@ -5,6 +5,7 @@ from datetime import date
 import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objects as go
+import requests
 from plotly.subplots import make_subplots
 from scipy.signal import spectrogram
 import streamlit as st
@@ -23,7 +24,12 @@ st.write(
 area_code = st.session_state["electricity_area"]
 area_number = int(area_code[-1])
 # The NVE series stays weekly here; I do not merge it with hourly weather data.
-reservoirs = load_reservoirs()
+try:
+    with st.spinner("Loading reservoir data…"):
+        reservoirs = load_reservoirs()
+except (requests.RequestException, ValueError, KeyError):
+    st.error("The reservoir data could not be loaded. Please try again later.")
+    st.stop()
 # I filter to one electricity area before decomposing so the weekly observations stay in order.
 selected = reservoirs.loc[
     (reservoirs["area_type"] == "EL") & (reservoirs["area_number"] == area_number)

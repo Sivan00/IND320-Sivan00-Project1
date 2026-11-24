@@ -10,3 +10,5 @@ output/
 
 # Data is downloaded or generated when needed.
 *.csv
+
+/.venv

@@ -21,6 +21,8 @@ def weather_check(weather, property_name, method, cutoff=0.08, n_sd=3.0, contami
         coefficients = dct(values, type=2, norm='ortho')
         keep = max(1, int(np.ceil(len(values) * cutoff)))
         background = idct(np.r_[coefficients[:keep], np.zeros(len(values)-keep)], type=2, norm='ortho')
+        # The high-pass residual is SATV. Only its limits and flags are shown;
+        # the plotted weather values remain on their original scale.
         residual = values - background
         center, _, low, high = robust_limits(residual, n_sd)
         flags = (residual < low) | (residual > high)
@@ -37,6 +39,6 @@ def weather_check(weather, property_name, method, cutoff=0.08, n_sd=3.0, contami
         raise ValueError('Choose SPC or LOF.')
     fig.add_scatter(x=data.loc[flags, 'time'], y=values[flags], mode='markers', name='Flagged hours',
                     marker={'color': '#D06A2E', 'size': 6})
-    fig.update_layout(title=f'{property_name}: {method} check', xaxis_title='Date',
+    fig.update_layout(title=f'{property_name}: {method} check', xaxis_title='Date (UTC)',
                       yaxis_title=f'{property_name} ({unit})', hovermode='x unified')
     return fig, int(flags.sum()), len(data)

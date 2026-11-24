@@ -26,12 +26,14 @@ def monthly_exchange_rates(rates: pd.DataFrame) -> pd.DataFrame:
 
 
 def _features(history: list[float], month: pd.Timestamp, lags: int,
-              last_rates: dict[str, float]) -> dict[str, float]:
+              last_rates: dict[str, float], last_weather: dict[str, float] | None = None) -> dict[str, float]:
     # Scaling the lag values keeps them comparable with the calendar features.
     values = {f"lag_{i}": history[-i] / 100 for i in range(1, lags + 1)}
     values["month_sin"] = float(np.sin(2 * np.pi * (month.month - 1) / 12))
     values["month_cos"] = float(np.cos(2 * np.pi * (month.month - 1) / 12))
     values.update({f"{name}_NOK": float(value) / 10 for name, value in last_rates.items()})
+    values.update({f"weather_{name}": float(value) / (20 if name == "temperature" else 5)
+                   for name, value in (last_weather or {}).items()})
     return values
 
 
@@ -39,16 +41,20 @@ def forecast_reservoir(
     series: pd.Series, horizon: int = 3, history_months: int = 120,
     lags: int = 12, n_neighbors: int = 3, rates: pd.DataFrame | None = None,
     currencies: tuple[str, ...] = (), validation_months: int = 12,
+    weather: pd.DataFrame | None = None, weather_properties: tuple[str, ...] = (),
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     """Train on past months, test chronologically, then predict recursively.
 
     Exchange-rate features use the previous month's average. Future rates are
     held at their last known values; they are assumptions, not predictions.
+    Selected weather inputs also use the previous month and are held constant in the future.
     """
     if horizon < 1 or lags < 1 or n_neighbors < 1 or history_months < 1 or validation_months < 1:
         raise ValueError("Use positive values for the model settings.")
     if len(set(currencies)) != len(currencies) or not set(currencies) <= {"EUR", "USD"}:
         raise ValueError("Choose EUR, USD, both or no exchange rates.")
+    if len(set(weather_properties)) != len(weather_properties) or not set(weather_properties) <= {"temperature", "precipitation"}:
+        raise ValueError("Choose temperature, precipitation, both or no weather inputs.")
     data = series.sort_index().tail(history_months).astype(float)
     if data.index.has_duplicates or data.isna().any() or not np.isfinite(data).all():
         raise ValueError("The chosen monthly reservoir series must contain unique, nonmissing values.")
@@ -65,6 +71,14 @@ def forecast_reservoir(
             raise ValueError("Exchange rates are missing in the selected history.")
     else:
         aligned_rates = pd.DataFrame(index=data.index)
+    if weather_properties:
+        if weather is None or not set(weather_properties).issubset(weather.columns):
+            raise ValueError("The selected weather inputs are not available.")
+        aligned_weather = weather.reindex(data.index)[list(weather_properties)]
+        if aligned_weather.isna().any().any() or not np.isfinite(aligned_weather.to_numpy()).all():
+            raise ValueError("Weather values are missing in the selected history.")
+    else:
+        aligned_weather = pd.DataFrame(index=data.index)
     model = neighbors.KNNRegressor(
         n_neighbors=n_neighbors, engine=neighbors.LazySearch(window_size=history_months),
     )
@@ -73,7 +87,7 @@ def forecast_reservoir(
     first_validation = len(data) - validation_months
     for i in range(lags, len(data)):
         previous_rates = aligned_rates.iloc[i - 1].to_dict()
-        features = _features(history, data.index[i], lags, previous_rates)
+        features = _features(history, data.index[i], lags, previous_rates, aligned_weather.iloc[i - 1].to_dict())
         # Predict before learning the current month, so validation only uses past data.
         if i >= first_validation:
             predicted = model.predict_one(features)
@@ -81,10 +95,11 @@ def forecast_reservoir(
         model.learn_one(features, float(data.iloc[i]))
         history.append(float(data.iloc[i]))
     last_rates = aligned_rates.iloc[-1].to_dict() if currencies else {}
+    last_weather = aligned_weather.iloc[-1].to_dict() if weather_properties else {}
     future_dates = pd.date_range(data.index[-1] + pd.offsets.MonthBegin(1), periods=horizon, freq="MS")
     predicted_values = []
     for month in future_dates:
-        features = _features(history, month, lags, last_rates)
+        features = _features(history, month, lags, last_rates, last_weather)
         prediction = float(model.predict_one(features))
         # A filling percentage must remain within the physical range.
         prediction = float(np.clip(prediction, 0, 100))
@@ -94,5 +109,5 @@ def forecast_reservoir(
     validation = pd.DataFrame(validation)
     metrics = {"mae": float((validation.actual - validation.predicted).abs().mean()),
                "history_months": len(data), "validation_months": len(validation),
-               "currencies": list(currencies), "last_month": str(data.index[-1].date())}
+               "currencies": list(currencies), "weather": list(weather_properties), "last_month": str(data.index[-1].date())}
     return forecast, validation, metrics
