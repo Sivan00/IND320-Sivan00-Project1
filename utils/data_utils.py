@@ -28,7 +28,7 @@ AREA_DETAILS = {
     ("EL", 5): ("NO5: Western Norway", "Central Vestland up to Sognefjorden, Indre Sogn, and western Buskerud."),
     ("VASS", 1): ("South-eastern Norway", "Østlandet, Agder and parts of Rogaland."),
     ("VASS", 2): ("Western Norway", "The rest of Rogaland and Vestland."),
-    ("VASS", 3): ("Central Norway", "Møre og Romsdal, Trøndelag and southern Nordland."),
+    ("VASS", 3): ("Central and Northern Norway", "Møre og Romsdal, Trøndelag and Northern Norway."),
     ("VASS", 4): ("Northern Norway", "The rest of Nordland and the areas further north."),
 }
 

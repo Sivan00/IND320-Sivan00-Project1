@@ -44,6 +44,14 @@ class WeatherFeedbackTests(unittest.TestCase):
             self.assertEqual(len(points), 1000)
             self.assertTrue(points.covered_by(polygon).all())
 
+    def test_hourly_weather_uses_utc_through_dst_change(self):
+        coordinates = ((63.1, 10.1),)
+        with patch("utils.quality_utils.requests.get", side_effect=fake_response) as request:
+            result = _weather_batch_summary(coordinates, "2024-03-31", "2024-03-31")
+        self.assertEqual(request.call_args.kwargs["params"]["timezone"], "GMT")
+        self.assertEqual(len(result), 24)
+        self.assertEqual(result.index[-1], pd.Timestamp("2024-03-31 23:00"))
+
     def test_all_thousand_locations_contribute_to_mean(self):
         sample = pd.DataFrame({"area_group": ["NO3"] * 1000,
                                "latitude": np.linspace(63, 64, 1000),

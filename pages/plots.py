@@ -1,7 +1,6 @@
 """Compare reservoir fill for every area in one selected NVE area system."""
 
-import matplotlib.dates as mdates
-import matplotlib.pyplot as plt
+import plotly.express as px
 import requests
 import streamlit as st
 
@@ -44,40 +43,13 @@ if area_data.empty:
     st.info("NVE returned no measurements for this choice.")
     st.stop()
 
-fig, ax = plt.subplots(figsize=(10.5, 5.5))
-colors = ["#2F6F73", "#A45A52", "#947340", "#5D6699", "#77915F"]
-# Each area gets its own line, so EL, NO and VASS are never mixed together.
-for index, (area_number, rows) in enumerate(area_data.groupby("area_number")):
-    rows = rows.sort_values("date")
-    ax.plot(
-        rows["date"],
-        rows["fill_fraction"] * 100,
-        label=area_label(area_type, int(area_number)),
-        color=colors[index % len(colors)],
-        linewidth=1.8,
-    )
-
-ax.set_title(f"Reservoir fill: {AREA_TYPES[area_type]}", loc="left", fontweight="bold")
-ax.set_xlabel("Date")
-ax.set_ylabel("Fill level (%)")
-ax.set_ylim(0, 105)
-# The light grid and open frame keep several area lines readable at once.
-ax.grid(axis="y", color="#E7E7E7", linewidth=0.7)
-ax.spines[["top", "right"]].set_visible(False)
-locator = mdates.AutoDateLocator(minticks=4, maxticks=8)
-ax.xaxis.set_major_locator(locator)
-ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
-ax.legend(
-    title="Area",
-    loc="upper center",
-    bbox_to_anchor=(0.5, -0.18),
-    ncols=2,
-    frameon=False,
-    fontsize=9,
-)
-fig.tight_layout()
-st.pyplot(fig)
-plt.close(fig)
+area_data["Area"] = area_data["area_number"].map(lambda number: area_label(area_type, int(number)))
+area_data["Fill level (%)"] = area_data["fill_fraction"] * 100
+fig = px.line(area_data.sort_values("date"), x="date", y="Fill level (%)", color="Area",
+              title=f"Reservoir fill: {AREA_TYPES[area_type]}",
+              color_discrete_sequence=["#2F6F73", "#A45A52", "#947340", "#5D6699", "#77915F"])
+fig.update_layout(xaxis_title="Date", yaxis_range=[0, 105], hovermode="x unified")
+st.plotly_chart(fig, width="stretch")
 
 st.caption(
     f"Showing {area_data['area_number'].nunique()} {area_type} areas and "

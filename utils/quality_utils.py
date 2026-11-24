@@ -366,8 +366,9 @@ def _weather_batch_summary(coordinates: tuple[tuple[float, float], ...], start_d
         "longitude": ",".join(f"{longitude:.5f}" for _, longitude in coordinates),
         "start_date": start_date, "end_date": end_date,
         "hourly": "precipitation,temperature_2m", "models": "era5",
-        "timezone": "Europe/Oslo", "temperature_unit": "celsius", "precipitation_unit": "mm",
+        "timezone": "GMT", "temperature_unit": "celsius", "precipitation_unit": "mm",
     }
+    # A fixed UTC timeline avoids ambiguous or missing local clock hours at DST changes.
     expected = pd.date_range(pd.Timestamp(start_date), pd.Timestamp(end_date) + pd.Timedelta(hours=23), freq="h")
     key = hashlib.sha256(json.dumps(params, sort_keys=True).encode()).hexdigest()
     cache_file = WEATHER_BATCH_CACHE / f"{key}.json"
@@ -430,7 +431,7 @@ def load_open_meteo_region(
     point_count: int = 1,
     sample_points: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """Average ERA5 at sampled NO1–NO5 areas or East/West/North regions."""
+    """Average ERA5 at sampled areas. The returned naive time labels represent UTC."""
     # Electricity areas and combined regions use different polygon samples.
     samples = sample_points
     if samples is None:
